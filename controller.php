@@ -9,10 +9,11 @@
 	$menu=$_POST['menu'];
 	$tot_amount=$_POST['tot_amount'];
 	$quantity=$_POST['quantity'];
-    $invoice_num=$_POST['invoice_num'];
+	$invoice_num=$_POST['invoice_num'];
+	$total = $_POST['total'];
     $date = date('Y-m-d H:i:s');
-	$sql = "INSERT INTO `sales`( `item`, `cost`, `quantity`, `invoice_num`, `date`) 
-	VALUES ('$menu','$tot_amount','$quantity','$invoice_num', '$date')";
+	$sql = "INSERT INTO `sales`( `item`, `cost`, `quantity`, `invoice_num`, `total`, `date`) 
+	VALUES ('$menu','$tot_amount','$quantity','$invoice_num','$total' '$date')";
 	if (mysqli_query($conn, $sql)) {
 		echo json_encode(array("statusCode"=>200));
 	} 

@@ -1,5 +1,5 @@
 <?php
-
+session_start();
 include 'db_config.php';
 
 // mysql select query
@@ -7,11 +7,19 @@ $stmt = $con->prepare('SELECT * FROM menu');
 $stmt->execute();
 $menus = $stmt->fetchAll();
 
-//get all item in sale table
-$getSales = [];
-$getAll = $con->prepare('SELECT * FROM sales');
-$getAll->execute();
-$getSales = $getAll->fetchAll(PDO::FETCH_ASSOC);
+//get session value
+$currentSession = $_SESSION["invoice"];
+
+//get all item in sale table with check for statement
+if (isset($_SESSION["invoice"])) {
+    $getAll = $con->prepare('SELECT * FROM sales WHERE invoice_num =' . $currentSession);
+    $getAll->execute();
+    $getSales = $getAll->fetchAll(PDO::FETCH_ASSOC);
+} else {
+    $getAll = $con->prepare('SELECT * FROM sales WHERE invoice_num = 0' );
+    $getAll->execute();
+    $getSales = $getAll->fetchAll(PDO::FETCH_ASSOC);
+}
 //print_r($getSales);
 ?>
 
@@ -28,8 +36,12 @@ $getSales = $getAll->fetchAll(PDO::FETCH_ASSOC);
 
     <?php
     // <!-- generate random invoice num -->
-
-        $invoice_num = Rand(1, 1000);
+    if (isset($_SESSION["invoice"])) {
+        $invoice_num = $_SESSION["invoice"];
+    } else {
+        $invoice_num = Rand(1, 10000);
+        $_SESSION["invoice"] = $invoice_num;
+    }
     ?>
     </br></br></br>
     <div class="well container">
@@ -63,7 +75,7 @@ $getSales = $getAll->fetchAll(PDO::FETCH_ASSOC);
                     <input class="form-control" type="hidden" id="invoice_num" value="<?php echo $invoice_num ?>" name="invoice_num">
                 </div>
                 <div class="col-md-6 text-right pull-right" style="padding-top: 10px;">
-                    <button type="button" id="next" class="btn btn-danger">Next customer</button>
+                    <a href="resetSession.php"><button type="button" id="next" class="btn btn-danger">Next customer</button></a>
                     <button type="button" id="submit" class="btn btn-primary">Submit</button>
                 </div>
             </form>
@@ -72,10 +84,10 @@ $getSales = $getAll->fetchAll(PDO::FETCH_ASSOC);
 
     <div class="container">
         <div class="row">
-            <div class="well col-md-12">
+            <div class="well col-md-12" id="table-invoice">
                 <h1>Display Menu</h1>
                 <hr />
-                <span>Invoice Num : <?php echo $invoice_num ?></span>
+                <h3>Invoice Num : <?php echo $invoice_num ?></h3>
                 <div class="row">
                     <table class="table table-hover">
                         <thead>
@@ -90,10 +102,10 @@ $getSales = $getAll->fetchAll(PDO::FETCH_ASSOC);
                         <tbody>
                             <?php
                             foreach ($getSales as $sales) {
-                                echo "<pre>";
-                                print_r($getSales);
-                                echo "</pre>";
-                                echo '<tr>';
+                                // echo "<pre>";
+                                // print_r($getSales);
+                                // echo "</pre>";
+                                // echo '<tr>';
                                 echo "<td class='text-center'>" . $sales['id'] . "</td>";
                                 echo "<td class='col-md-'>" . $sales['item'] . "</td>";
                                 echo "<td class='col-md-1' style='text-align: center'>" . $sales['quantity'] . "</td>";
@@ -123,19 +135,14 @@ $getSales = $getAll->fetchAll(PDO::FETCH_ASSOC);
         </div>
         <script>
             var getPrice;
+            var getQuantity;
+            var total;
             $("#menu").change(function() {
                 getPrice = $("#menu :selected").attr('id');
+                // getQuantity = document.getElementById("quantity");
+                // total = getPrice * getQuantity;
                 // alert(getPrice);
-                $("#tot_amount").val("RM " + getPrice);
-                $("#price").text("RM " + getPrice);
-            });
-
-            jQuery(document).ready(function($) {
-                $("#random").click(function() {
-                    var number = 1 + Math.floor(Math.random() * 6); //Change the 6 to be the number of random numbers you want to generate. So if you want 100 numbers, change to 100
-                    $("#number").text(number);
-
-                });
+                $("#tot_amount").val(getPrice);
             });
 
             $("#next").change(function() {
@@ -149,6 +156,7 @@ $getSales = $getAll->fetchAll(PDO::FETCH_ASSOC);
                     var tot_amount = $('#tot_amount').val();
                     var quantity = $('#quantity').val();
                     var invoice_num = $('#invoice_num').val();
+                    var total = tot_amount * quantity;
                     if (menu != "" && tot_amount != "" && quantity != "" && invoice_num != "") {
                         $.ajax({
                             url: "controller.php",
@@ -157,7 +165,8 @@ $getSales = $getAll->fetchAll(PDO::FETCH_ASSOC);
                                 menu: menu,
                                 tot_amount: tot_amount,
                                 quantity: quantity,
-                                invoice_num: invoice_num
+                                invoice_num: invoice_num,
+                                total: total
                             },
                             cache: false,
                             success: function(dataResult) {
@@ -168,6 +177,7 @@ $getSales = $getAll->fetchAll(PDO::FETCH_ASSOC);
                                     $('#quantity').val('');
                                     $("#success").show();
                                     $('#success').html('Data added successfully !');
+                                    location.reload();
                                 } else if (dataResult.statusCode == 201) {
                                     alert("Error occured !");
                                 }
