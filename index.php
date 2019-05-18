@@ -16,7 +16,7 @@ if (isset($_SESSION["invoice"])) {
     $getAll->execute();
     $getSales = $getAll->fetchAll(PDO::FETCH_ASSOC);
 } else {
-    $getAll = $con->prepare('SELECT * FROM sales WHERE invoice_num = 0' );
+    $getAll = $con->prepare('SELECT * FROM sales WHERE invoice_num = 0');
     $getAll->execute();
     $getSales = $getAll->fetchAll(PDO::FETCH_ASSOC);
 }
@@ -95,7 +95,8 @@ if (isset($_SESSION["invoice"])) {
                                 <th>Id</th>
                                 <th>Name</th>
                                 <th>Quantity</th>
-                                <th>Price</th>
+                                <th>Per Price</th>
+                                <th>Total</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
@@ -105,11 +106,12 @@ if (isset($_SESSION["invoice"])) {
                                 // echo "<pre>";
                                 // print_r($getSales);
                                 // echo "</pre>";
-                                // echo '<tr>';
+                                echo '<tr>';
                                 echo "<td class='text-center'>" . $sales['id'] . "</td>";
                                 echo "<td class='col-md-'>" . $sales['item'] . "</td>";
                                 echo "<td class='col-md-1' style='text-align: center'>" . $sales['quantity'] . "</td>";
                                 echo "<td class='col-md-1 text-center' id='price' value=''>" . $sales['cost'] . "</td>";
+                                echo "<td class='col-md-1 text-center' value=''>" . $sales['total'] . "</td>";
                                 echo "<td class='col-md-1 text-center'><span class='glyphicon glyphicon-trash' aria-hidden='true'></span></td>";
                                 echo '</tr>';
                             }
@@ -118,11 +120,18 @@ if (isset($_SESSION["invoice"])) {
                                 <td>   </td>
                                 <td>   </td>
                                 <td>   </td>
+                                <td>   </td>
                                 <td class="text-right">
                                     <h4><strong>Total: </strong></h4>
                                 </td>
                                 <td class="text-center text-danger">
-                                    <h4><strong>$31.53</strong></h4>
+                                    <?php
+                                    $amount = 0;
+                                    foreach ($getSales as $sales) {
+                                         $amount += $sales['total'];
+                                    }
+                                    ?>
+                                    <h4><strong>RM <?php echo $amount ?></strong></h4>
                                 </td>
                             </tr>
                         </tbody>
@@ -149,6 +158,8 @@ if (isset($_SESSION["invoice"])) {
                 alert('kau saba jap')
             });
 
+
+
             $(document).ready(function() {
                 $('#submit').on('click', function() {
                     $("#submit").attr("disabled", "disabled");
@@ -156,10 +167,11 @@ if (isset($_SESSION["invoice"])) {
                     var tot_amount = $('#tot_amount').val();
                     var quantity = $('#quantity').val();
                     var invoice_num = $('#invoice_num').val();
-                    var total = tot_amount * quantity;
+                    total = tot_amount * quantity;
                     if (menu != "" && tot_amount != "" && quantity != "" && invoice_num != "") {
                         $.ajax({
                             url: "controller.php",
+                            dataType: "text",
                             type: "POST",
                             data: {
                                 menu: menu,
@@ -180,6 +192,7 @@ if (isset($_SESSION["invoice"])) {
                                     location.reload();
                                 } else if (dataResult.statusCode == 201) {
                                     alert("Error occured !");
+                                    console.log(dataResult);
                                 }
                             }
                         });
