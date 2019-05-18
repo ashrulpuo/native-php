@@ -131,7 +131,7 @@ if (isset($_SESSION["invoice"])) {
                                         $amount += $sales['total'];
                                     }
                                     ?>
-                                    <h4><strong><?php echo $amount ?></strong></h4>
+                                    <h4 id="harga"><strong><?php echo $amount ?></strong></h4>
                                 </td>
                             </tr>
                         </tbody>
@@ -149,6 +149,15 @@ if (isset($_SESSION["invoice"])) {
         var getPrice;
         var getQuantity;
         var total;
+        var validateButton = "<?php echo $amount; ?>";
+
+        //vaidate button 
+        if (validateButton == 0) {
+            $('#checkout').prop('disabled', true);
+        } else {
+            $('#checkout').prop('disabled', false);
+        }
+
         $("#menu").change(function() {
             getPrice = $("#menu :selected").attr('id');
             // getQuantity = document.getElementById("quantity");
@@ -160,8 +169,6 @@ if (isset($_SESSION["invoice"])) {
         $("#next").change(function() {
             alert('kau saba jap')
         });
-
-
 
         $(document).ready(function() {
 
