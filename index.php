@@ -128,80 +128,117 @@ if (isset($_SESSION["invoice"])) {
                                     <?php
                                     $amount = 0;
                                     foreach ($getSales as $sales) {
-                                         $amount += $sales['total'];
+                                        $amount += $sales['total'];
                                     }
                                     ?>
-                                    <h4><strong>RM <?php echo $amount ?></strong></h4>
+                                    <h4><strong><?php echo $amount ?></strong></h4>
                                 </td>
                             </tr>
                         </tbody>
                     </table>
-                    <button type="button" class="btn btn-success btn-lg btn-block">
+                    <button type="button" id="checkout" class="btn btn-success btn-lg btn-block">
                         Pay Now   <span class="glyphicon glyphicon-chevron-right"></span>
                     </button></td>
                 </div>
             </div>
         </div>
-        <script>
-            var getPrice;
-            var getQuantity;
-            var total;
-            $("#menu").change(function() {
-                getPrice = $("#menu :selected").attr('id');
-                // getQuantity = document.getElementById("quantity");
-                // total = getPrice * getQuantity;
-                // alert(getPrice);
-                $("#tot_amount").val(getPrice);
-            });
+    </div>
 
-            $("#next").change(function() {
-                alert('kau saba jap')
-            });
+    <!-- script process -->
+    <script>
+        var getPrice;
+        var getQuantity;
+        var total;
+        $("#menu").change(function() {
+            getPrice = $("#menu :selected").attr('id');
+            // getQuantity = document.getElementById("quantity");
+            // total = getPrice * getQuantity;
+            // alert(getPrice);
+            $("#tot_amount").val(getPrice);
+        });
+
+        $("#next").change(function() {
+            alert('kau saba jap')
+        });
 
 
 
-            $(document).ready(function() {
-                $('#submit').on('click', function() {
-                    $("#submit").attr("disabled", "disabled");
-                    var menu = $('#menu').val();
-                    var tot_amount = $('#tot_amount').val();
-                    var quantity = $('#quantity').val();
-                    var invoice_num = $('#invoice_num').val();
-                    total = tot_amount * quantity;
-                    if (menu != "" && tot_amount != "" && quantity != "" && invoice_num != "") {
-                        $.ajax({
-                            url: "controller.php",
-                            dataType: "text",
-                            type: "POST",
-                            data: {
-                                menu: menu,
-                                tot_amount: tot_amount,
-                                quantity: quantity,
-                                invoice_num: invoice_num,
-                                total: total
-                            },
-                            cache: false,
-                            success: function(dataResult) {
-                                var dataResult = JSON.parse(dataResult);
-                                if (dataResult.statusCode == 200) {
-                                    $("#submit").removeAttr("disabled");
-                                    $('#my-form').find('input:text').val('');
-                                    $('#quantity').val('');
-                                    $("#success").show();
-                                    $('#success').html('Data added successfully !');
-                                    location.reload();
-                                } else if (dataResult.statusCode == 201) {
-                                    alert("Error occured !");
-                                    console.log(dataResult);
-                                }
+        $(document).ready(function() {
+
+            //get all val and calculate amount and send using ajax, save to sales table
+            $('#submit').on('click', function() {
+                $("#submit").attr("disabled", "disabled");
+                var menu = $('#menu').val();
+                var tot_amount = $('#tot_amount').val();
+                var quantity = $('#quantity').val();
+                var invoice_num = $('#invoice_num').val();
+                total = tot_amount * quantity;
+                if (menu != "" && tot_amount != "" && quantity != "" && invoice_num != "") {
+                    $.ajax({
+                        url: "controller.php",
+                        dataType: "text",
+                        type: "POST",
+                        data: {
+                            menu: menu,
+                            tot_amount: tot_amount,
+                            quantity: quantity,
+                            invoice_num: invoice_num,
+                            total: total
+                        },
+                        cache: false,
+                        success: function(dataResult) {
+                            var dataResult = JSON.parse(dataResult);
+                            if (dataResult.statusCode == 200) {
+                                $("#submit").removeAttr("disabled");
+                                $('#my-form').find('input:text').val('');
+                                $('#quantity').val('');
+                                $("#success").show();
+                                $('#success').html('Data added successfully !');
+                                location.reload();
+                            } else if (dataResult.statusCode == 201) {
+                                alert("Error occured !");
+                                console.log(dataResult);
                             }
-                        });
-                    } else {
-                        alert('Please fill all the field !');
-                    }
-                });
+                        }
+                    });
+                } else {
+                    alert('Please fill all the field !');
+                }
             });
-        </script>
+        });
+
+        $(document).ready(function() {
+            $('#checkout').on('click', function() {
+                $("#checkout").attr("disabled", "disabled");
+                var numInvoice = "<?php echo $invoice_num; ?>";
+                var priceCheckout = "<?php echo $amount; ?>";
+                if (numInvoice != "" && priceCheckout != "") {
+                    $.ajax({
+                        url: "amount.php",
+                        dataType: "text",
+                        type: "POST",
+                        data: {
+                            numInvoice: numInvoice,
+                            priceCheckout: priceCheckout
+                        },
+                        cache: false,
+                        success: function(dataResult) {
+                            var dataResult = JSON.parse(dataResult);
+                            if (dataResult.statusCode == 200) {
+                                alert('Berjaya Resit no anda ' + numInvoice)
+                                window.location.href = '/resetSession.php';
+                                //location.reload();
+                            } else if (dataResult.statusCode == 201) {
+                                alert("Error occured !");
+                            }
+                        }
+                    });
+                } else {
+                    alert('error value not found !');
+                }
+            });
+        });
+    </script>
 </body>
 
 </html>

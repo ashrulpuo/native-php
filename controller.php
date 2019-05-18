@@ -5,7 +5,7 @@
 	$password = "";
 	$db="test_ajwad";
     $conn = mysqli_connect($servername, $username, $password,$db);
-    
+	
 	$menu=$_POST['menu'];
 	$tot_amount=$_POST['tot_amount'];
 	$quantity=$_POST['quantity'];
