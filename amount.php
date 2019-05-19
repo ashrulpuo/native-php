@@ -7,13 +7,13 @@
     $conn = mysqli_connect($servername, $username, $password,$db);
     
     $numInvoice=$_POST['numInvoice'];
-    $priceCheckout=$_POST['priceCheckout'];
+	$priceCheckout=$_POST['priceCheckout'];
+    $custMoney=$_POST['custMoney'];
+    $Balance=$_POST['Balance'];
     $date = date('Y-m-d H:i:s');
-    // echo $numInvoice;
-    // echo $priceCheckout;
-    $sql = "INSERT INTO `checkout`( `invoice_num`, `total_amount`, `date`) 
-	VALUES ('$numInvoice','$priceCheckout','$date')";
-	//$sql = "INSERT INTO `checkout`( `invoice_num`, `total_amount`, `date`) VALUES ( '$numInvoice', '$priceCheckout', '$date')";
+    
+    $sql = "INSERT INTO `checkout`( `invoice_num`, `total_amount`, `date`, `cust_money`, `cust_balance`) 
+	VALUES ('$numInvoice','$priceCheckout','$date',$custMoney,$Balance)";
 	if (mysqli_query($conn, $sql)) {
 		echo json_encode(array("statusCode"=>200));
 	}   

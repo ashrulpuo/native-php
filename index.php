@@ -8,11 +8,11 @@ $stmt->execute();
 $menus = $stmt->fetchAll();
 
 //get session value
-$currentSession = $_SESSION["invoice"];
+//$currentSession = $_SESSION["invoice"];
 
 //get all item in sale table with check for statement
 if (isset($_SESSION["invoice"])) {
-    $getAll = $con->prepare('SELECT * FROM sales WHERE invoice_num =' . $currentSession);
+    $getAll = $con->prepare('SELECT * FROM sales WHERE invoice_num =' . $_SESSION["invoice"]);
     $getAll->execute();
     $getSales = $getAll->fetchAll(PDO::FETCH_ASSOC);
 } else {
@@ -136,10 +136,56 @@ if (isset($_SESSION["invoice"])) {
                             </tr>
                         </tbody>
                     </table>
-                    <button type="button" id="checkout" class="btn btn-success btn-lg btn-block">
+                    <button type="button" data-toggle="modal" data-target="#exampleModal" id="checkout" class="btn btn-success btn-lg btn-block">
                         Pay Now   <span class="glyphicon glyphicon-chevron-right"></span>
                     </button></td>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <!-- <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Payment</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div> -->
+                <div class="modal-body">
+                    <div class="container">
+                        <table id="cart" class="table table-hover table-condensed">
+                            <thead>
+                                <tr>
+                                    <th style="width:40%">Receipt Num</th>
+                                    <th style="width:30%">Total Price</th>
+                                    <th style="width:20%">pay</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td data-th="Price"><?php echo $invoice_num ?></td>
+                                    <td data-th="Subtotal" class="text-center"><?php echo $amount ?></td>
+                                    <td data-th="Quantity">
+                                        <input type="number" class="form-control text-center" id="cust_money" value="">
+                                    </td>
+                                </tr>
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td><a href="" data-dismiss="modal" class="btn btn-warning"><i class="fa fa-angle-left"></i> Continue Shopping</a></td>
+                                    <td class="hidden-xs text-center"><strong>Balance : RM <?php echo $amount ?></strong></td>
+                                    <td><a href="" id="pay" class="btn btn-primary"><i class="fa fa-angle-left"></i> Pay Now</a></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+                <!-- <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary">Pay Now</button>
+                </div> -->
             </div>
         </div>
     </div>
@@ -215,33 +261,41 @@ if (isset($_SESSION["invoice"])) {
         });
 
         $(document).ready(function() {
-            $('#checkout').on('click', function() {
-                $("#checkout").attr("disabled", "disabled");
+            $('#pay').on('click', function() {
+                $("#pay").attr("disabled", "disabled");
                 var numInvoice = "<?php echo $invoice_num; ?>";
                 var priceCheckout = "<?php echo $amount; ?>";
-                if (numInvoice != "" && priceCheckout != "") {
-                    $.ajax({
-                        url: "amount.php",
-                        dataType: "text",
-                        type: "POST",
-                        data: {
-                            numInvoice: numInvoice,
-                            priceCheckout: priceCheckout
-                        },
-                        cache: false,
-                        success: function(dataResult) {
-                            var dataResult = JSON.parse(dataResult);
-                            if (dataResult.statusCode == 200) {
-                                alert('Berjaya Resit no anda ' + numInvoice)
-                                window.location.href = '/resetSession.php';
-                                //location.reload();
-                            } else if (dataResult.statusCode == 201) {
-                                alert("Error occured !");
+                var custMoney = $('#cust_money').val();
+                var Balance = custMoney - priceCheckout;
+                if (custMoney >= priceCheckout) {
+                    if (numInvoice != "" && priceCheckout != "" && Balance != 0) {
+                        $.ajax({
+                            url: "amount.php",
+                            dataType: "text",
+                            type: "POST",
+                            data: {
+                                numInvoice: numInvoice,
+                                priceCheckout: priceCheckout,
+                                custMoney: custMoney,
+                                Balance: Balance
+                            },
+                            cache: false,
+                            success: function(dataResult) {
+                                var dataResult = JSON.parse(dataResult);
+                                if (dataResult.statusCode == 200) {
+                                    alert('Berjaya Resit no anda :' + numInvoice)
+                                    window.location.href = '/resetSession.php';
+                                    //location.reload();
+                                } else if (dataResult.statusCode == 201) {
+                                    alert("Error occured !" + dataResult.statusCode);
+                                }
                             }
-                        }
-                    });
+                        });
+                    } else {
+                        alert('error value not found !');
+                    }
                 } else {
-                    alert('error value not found !');
+                    alert('Duit tidak mencukupi !')
                 }
             });
         });
