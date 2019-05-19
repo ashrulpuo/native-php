@@ -112,7 +112,7 @@ if (isset($_SESSION["invoice"])) {
                                 echo "<td class='col-md-1' style='text-align: center'>" . $sales['quantity'] . "</td>";
                                 echo "<td class='col-md-1 text-center' id='price' value=''>" . $sales['cost'] . "</td>";
                                 echo "<td class='col-md-1 text-center' value=''>" . $sales['total'] . "</td>";
-                                echo "<td class='col-md-1 text-center'><span class='glyphicon glyphicon-trash' aria-hidden='true'></span></td>";
+                                echo "<td class='col-md-1 text-center delete' id=" . $sales['id'] . " ><span class='glyphicon glyphicon-trash' aria-hidden='true'></span></td>";
                                 echo '</tr>';
                             }
                             ?>
@@ -196,6 +196,7 @@ if (isset($_SESSION["invoice"])) {
         var getQuantity;
         var total;
         var validateButton = "<?php echo $amount; ?>";
+        var getDelete;
 
         //vaidate button 
         if (validateButton == 0) {
@@ -206,9 +207,6 @@ if (isset($_SESSION["invoice"])) {
 
         $("#menu").change(function() {
             getPrice = $("#menu :selected").attr('id');
-            // getQuantity = document.getElementById("quantity");
-            // total = getPrice * getQuantity;
-            // alert(getPrice);
             $("#tot_amount").val(getPrice);
         });
 
@@ -298,6 +296,37 @@ if (isset($_SESSION["invoice"])) {
                     alert('Duit tidak mencukupi !')
                 }
             });
+
+            $('.delete').on('click', function() {
+
+                var el = this;
+                var id = this.id;
+
+                //alert(id);
+                // AJAX Request
+                $.ajax({
+                    url: 'delete.php',
+                    type: 'POST',
+                    data: {
+                        id: id
+                    },
+                    success: function(response) {
+
+                        if (response == 1) {
+                            // Remove row from HTML Table
+                            $(el).closest('tr').fadeOut(800, function() {
+                                $(this).remove();
+                            });
+                            location.reload();
+                        } else {
+                            alert('Invalid ID.');
+                        }
+
+                    }
+                });
+
+            });
+
         });
     </script>
 </body>
